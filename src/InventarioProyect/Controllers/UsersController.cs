@@ -80,5 +80,14 @@ namespace InventarioProyect.Controllers
 
         }
     }
-
+    [ApiController]
+    [Route("/")]
+    public class HomeController : ControllerBase
+    {
+        [HttpGet]
+        public IActionResult Index()
+        {
+            return Ok("Bienvenido a la API de Inventario");
+        }
+    }
 }
