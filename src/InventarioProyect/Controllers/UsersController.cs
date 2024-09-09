@@ -114,5 +114,14 @@ namespace InventarioProyect.Controllers
             return Ok("Este es un dato protegido que solo se puede acceder con un token válido.");
         }
     }
-
+    [ApiController]
+    [Route("/")]
+    public class HomeController : ControllerBase
+    {
+        [HttpGet]
+        public IActionResult Index()
+        {
+            return Ok("Bienvenido a la API de Inventario");
+        }
+    }
 }
