@@ -4,7 +4,10 @@ using InventarioProyect.Core.Startup.DbContext;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
-using System.Security.Cryptography;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace InventarioProyect.Controllers
 {
@@ -66,18 +69,49 @@ namespace InventarioProyect.Controllers
         [HttpPost("LogIn")]
         public async Task<IActionResult> LogInUser([FromBody] LogInRequestDto request)
         {
-            var user = await _context.user.FirstOrDefaultAsync(u => u.Username == request.Username);
+            var user = await _context.user.FirstOrDefaultAsync(u => u.Username == request.Username && u.Password == request.Password);
+
             if (user == null)
             {
                 return Unauthorized("Nombre de usuario o contraseña incorrectos.");
             }
-            var pass = await _context.user.FirstOrDefaultAsync(p => p.Password == request.Password);
-            if (pass == null)
-            {
-                return Unauthorized("Nombre de usuario o contraseña incorrectos.");
-            }
-            return Ok("Inicio de sesión exitoso.");
 
+            // Crear los claims (información que contendrá el token)
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Username),
+                new Claim("role", user.Role),  // Guardar el rol del usuario en el token
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            // Configurar la clave secreta y las credenciales
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("thisIsTheSuperSecureKeySaramambices"));  // Asegúrate de que sea segura
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            // Crear el token
+            var token = new JwtSecurityToken(
+                issuer: "IssuerSaramambiches",
+                audience: "publicoSaramambiches",
+                claims: claims,
+                // Duración del token
+                expires: DateTime.Now.AddHours(1),
+                signingCredentials: creds);
+
+            // Devolver el token en la respuesta
+            return Ok(new
+            {
+                token = new JwtSecurityTokenHandler().WriteToken(token),
+                // Retorna el rol para manejar permisos en el frontend
+                role = user.Role,
+                username = user.Username
+            });
+        }
+
+        [Authorize]
+        [HttpGet("GetProtectedData")]
+        public IActionResult GetProtectedData()
+        {
+            return Ok("Este es un dato protegido que solo se puede acceder con un token válido.");
         }
     }
 

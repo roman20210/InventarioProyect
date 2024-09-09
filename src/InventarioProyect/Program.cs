@@ -1,5 +1,8 @@
 using InventarioProyect.Core.Startup.DbContext;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,10 +22,26 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
         builder => builder
-            .WithOrigins("http://localhost:4200") // Permite solicitudes desde esta URL
+            // Permite solicitudes desde esta URL
+            .WithOrigins("http://localhost:4200")
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = "IssuerSaramambiches",
+            ValidAudience = "publicoSaramambiches",
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("thisIsTheSuperSecureKeySaramambices"))
+        };
+    });
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -37,9 +56,10 @@ else
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseAuthentication();
 app.UseAuthorization();
-app.UseCors("AllowSpecificOrigin"); // Usa la política CORS
+// Usa la política CORS
+app.UseCors("AllowSpecificOrigin");
 
 app.MapControllers();
 
