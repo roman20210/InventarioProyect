@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Inv.Microservice.Api.Logic\Inv.Microservice.Api.Logic.csproj" />
     <ProjectReference Include="..\Inv.Microservice.Api.Login.Data.Transfer.Object\Inv.Microservice.Api.Login.Data.Transfer.Object.csproj" />
     <ProjectReference Include="..\Inv.Microservice.Api.Login.Entities\Inv.Microservice.Api.Login.Entities.csproj" />
   </ItemGroup>

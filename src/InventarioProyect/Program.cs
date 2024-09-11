@@ -1,4 +1,5 @@
-using InventarioProyect.Core.Startup.DbContext;
+using Inv.Microservice.Api.Logic.Products.Services;
+using Inv.Microservice.Api.Login.Entities.Core.Startup.DbContext;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -27,6 +28,7 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
+builder.Services.AddScoped<IProductService, ProductService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

@@ -1,7 +1,6 @@
-﻿using Inv.Microservice.Api.Login.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
-namespace InventarioProyect.Core.Startup.DbContext
+namespace Inv.Microservice.Api.Login.Entities.Core.Startup.DbContext
 {
     public class ApplicationDbContext : Microsoft.EntityFrameworkCore.DbContext
     {
@@ -21,5 +20,6 @@ namespace InventarioProyect.Core.Startup.DbContext
         }
         public DbSet<User> user { get; set; }
         public DbSet<AdminUser> Adminuser { get; set; }
+        public DbSet<Product> product { get; set; }
     }
 }

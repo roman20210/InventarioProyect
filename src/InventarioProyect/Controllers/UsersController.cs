@@ -1,6 +1,5 @@
 using Inv.Microservice.Api.Login.Entities;
 using Inv.Microservice.Api.Login.Data.Transfer.Object;
-using InventarioProyect.Core.Startup.DbContext;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
@@ -8,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Inv.Microservice.Api.Login.Entities.Core.Startup.DbContext;
 
 namespace InventarioProyect.Controllers
 {
