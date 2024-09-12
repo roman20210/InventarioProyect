@@ -1,4 +1,5 @@
 using Inv.Microservice.Api.Logic.Products.Services;
+using Inv.Microservice.Api.Logic.Reports.Services;
 using Inv.Microservice.Api.Login.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,10 +10,12 @@ namespace InventarioProyect.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly IProductService _productService;
-
-        public ProductsController(IProductService productService)
+        private readonly IReportService _reportService;
+        public ProductsController(IProductService productService, IReportService reportService)
         {
             _productService = productService;
+            _reportService = reportService;
+
         }
 
         // Obtener todo el inventario
@@ -70,6 +73,18 @@ namespace InventarioProyect.Controllers
         {
             var products = await _productService.SearchProductsAsync(keyword);
             return Ok(products);
+        }
+
+        [HttpGet("report")]
+        public async Task<IActionResult> GenerateInventoryReport([FromQuery] string format)
+        {
+            var report = await _reportService.GenerateInventoryReportAsync(format);
+            if (report == null) return BadRequest("Formato no soportado");
+
+            var contentType = format.ToLower() == "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            var fileName = $"Reporte_Inventario_{DateTime.Now:yyyyMMdd}.{format}";
+
+            return File(report, contentType, fileName);
         }
     }
 

@@ -59,7 +59,7 @@ namespace Inv.Microservice.Api.Logic.Products.Services
         public async Task<IEnumerable<Product>> SearchProductsAsync(string keyword)
         {
             return await _context.product
-                .Where(p => p.Name.Contains(keyword) || p.Description.Contains(keyword))
+                .Where(p => p.Name.Contains(keyword) || p.Description.Contains(keyword) || p.Category.Contains(keyword))
                 .ToListAsync();
         }
     }

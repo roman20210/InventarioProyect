@@ -1,4 +1,5 @@
 using Inv.Microservice.Api.Logic.Products.Services;
+using Inv.Microservice.Api.Logic.Reports.Services;
 using Inv.Microservice.Api.Login.Entities.Core.Startup.DbContext;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +30,7 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

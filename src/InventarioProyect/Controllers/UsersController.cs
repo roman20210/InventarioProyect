@@ -8,6 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Inv.Microservice.Api.Login.Entities.Core.Startup.DbContext;
+using System.Linq;
 
 namespace InventarioProyect.Controllers
 {
@@ -15,18 +16,17 @@ namespace InventarioProyect.Controllers
     [Route("[controller]")]
     public class UsersController : ControllerBase
     {
-        /// <summary>
-        /// Suministra acceso al repositorio
-        /// </summary>
         private readonly ApplicationDbContext _context;
+
         public UsersController(ApplicationDbContext context)
         {
             _context = context;
         }
+
+        // Registro de usuario
         [HttpPost("register")]
         public async Task<IActionResult> RegisterUser([FromBody] RegisterRequestDto request)
         {
-            // Verificar si el nombre de usuario ya existe
             var existingUser = await _context.user
                 .FirstOrDefaultAsync(u => u.Username == request.Username);
 
@@ -35,7 +35,6 @@ namespace InventarioProyect.Controllers
                 return BadRequest("El nombre de usuario ya está en uso.");
             }
 
-            // Validar si el tipo de usuario es Admin
             if (request.Role == "Admin")
             {
                 var adminPassword = await _context.Adminuser
@@ -45,14 +44,12 @@ namespace InventarioProyect.Controllers
                 {
                     return BadRequest("Contraseña adicional para admin incorrecta.");
                 }
-
             }
             else if (request.Role != "Employee")
             {
                 return BadRequest("Rol inválido.");
             }
 
-            // Crear nuevo usuario
             var user = new User
             {
                 Username = request.Username,
@@ -66,6 +63,7 @@ namespace InventarioProyect.Controllers
             return Ok(new { message = "Usuario registrado exitosamente." });
         }
 
+        // Inicio de sesión
         [HttpPost("LogIn")]
         public async Task<IActionResult> LogInUser([FromBody] LogInRequestDto request)
         {
@@ -76,42 +74,101 @@ namespace InventarioProyect.Controllers
                 return Unauthorized("Nombre de usuario o contraseña incorrectos.");
             }
 
-            // Crear los claims (información que contendrá el token)
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Username),
-                new Claim("role", user.Role),  // Guardar el rol del usuario en el token
+                new Claim("role", user.Role),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-            // Configurar la clave secreta y las credenciales
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("thisIsTheSuperSecureKeySaramambices"));  // Asegúrate de que sea segura
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("thisIsTheSuperSecureKeySaramambices"));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            // Crear el token
             var token = new JwtSecurityToken(
                 issuer: "IssuerSaramambiches",
                 audience: "publicoSaramambiches",
                 claims: claims,
-                // Duración del token
                 expires: DateTime.Now.AddHours(1),
                 signingCredentials: creds);
 
-            // Devolver el token en la respuesta
             return Ok(new
             {
                 token = new JwtSecurityTokenHandler().WriteToken(token),
-                // Retorna el rol para manejar permisos en el frontend
                 role = user.Role,
                 username = user.Username
             });
         }
 
+        // Obtener datos protegidos
         [Authorize]
         [HttpGet("GetProtectedData")]
         public IActionResult GetProtectedData()
         {
             return Ok("Este es un dato protegido que solo se puede acceder con un token válido.");
+        }
+
+        // Listar usuarios con paginación
+        [HttpGet("list")]
+        public async Task<IActionResult> GetUsers([FromQuery] int page = 1, [FromQuery] int size = 10)
+        {
+            var users = await _context.user
+                .Skip((page - 1) * size)
+                .Take(size)
+                .ToListAsync();
+
+            return Ok(users);
+        }
+
+        // Obtener un usuario por ID
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUserById(int id)
+        {
+            var user = await _context.user.FindAsync(id);
+
+            if (user == null)
+            {
+                return NotFound("Usuario no encontrado.");
+            }
+
+            return Ok(user);
+        }
+
+        // Actualizar un usuario
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto request)
+        {
+            var user = await _context.user.FindAsync(id);
+
+            if (user == null)
+            {
+                return NotFound("Usuario no encontrado.");
+            }
+
+            user.Username = request.Username;
+            user.Password = request.Password;
+            user.Role = request.Role;
+
+            _context.user.Update(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Usuario actualizado exitosamente." });
+        }
+
+        // Eliminar un usuario
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            var user = await _context.user.FindAsync(id);
+
+            if (user == null)
+            {
+                return NotFound("Usuario no encontrado.");
+            }
+
+            _context.user.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Usuario eliminado exitosamente." });
         }
     }
 }
