@@ -108,16 +108,22 @@ namespace InventarioProyect.Controllers
         }
 
         // Listar usuarios con paginación
-        [HttpGet("list")]
-        public async Task<IActionResult> GetUsers([FromQuery] int page = 1, [FromQuery] int size = 10)
+        [HttpGet("users")]
+        public async Task<IActionResult> GetUsers(int page = 1, int pageSize = 10)
         {
+            var totalUsers = await _context.user.CountAsync();
             var users = await _context.user
-                .Skip((page - 1) * size)
-                .Take(size)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            return Ok(users);
+            return Ok(new
+            {
+                users = users,
+                totalItems = totalUsers
+            });
         }
+
 
         // Obtener un usuario por ID
         [HttpGet("{id}")]
@@ -143,9 +149,7 @@ namespace InventarioProyect.Controllers
             {
                 return NotFound("Usuario no encontrado.");
             }
-
             user.Username = request.Username;
-            user.Password = request.Password;
             user.Role = request.Role;
 
             _context.user.Update(user);
