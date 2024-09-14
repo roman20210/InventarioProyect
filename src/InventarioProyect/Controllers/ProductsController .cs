@@ -15,7 +15,6 @@ namespace InventarioProyect.Controllers
         {
             _productService = productService;
             _reportService = reportService;
-
         }
 
         // Obtener todo el inventario
@@ -86,6 +85,7 @@ namespace InventarioProyect.Controllers
 
             return File(report, contentType, fileName);
         }
+        
     }
 
 }
